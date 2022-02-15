@@ -1,20 +1,22 @@
-package ru.yandex.practicum.task;
+package ru.yandex.practicum.task.models;
+
+import java.util.Objects;
 
 public class SubTask extends Task {
 
-    private int parentID;
+    private long parentID;
 
-    public SubTask(String name, String description, int parentId) {
+    public SubTask(String name, String description, long parentId) {
         super(name, description);
         this.setParentId(parentId);
     }
 
 
-    public int getParentId() {
+    public long getParentId() {
         return parentID;
     }
 
-    public void setParentId(int parentId) {
+    public void setParentId(long parentId) {
         this.parentID = parentId;
     }
 
@@ -22,4 +24,5 @@ public class SubTask extends Task {
     public String toString() {
         return "parentID=" + parentID+ ", "+ super.toString();
     }
+
 }

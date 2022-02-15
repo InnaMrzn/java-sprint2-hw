@@ -1,4 +1,4 @@
-package ru.yandex.practicum.task;
+package ru.yandex.practicum.task.models;
 
 import ru.yandex.practicum.task.constants.TaskStatus;
 import java.util.Objects;
@@ -6,7 +6,7 @@ import java.util.Objects;
 public class Task {
 
     private String name;
-    private Integer ID;
+    private Long ID;
     private String description;
     private TaskStatus status;
 
@@ -25,11 +25,11 @@ public class Task {
         this.name = name;
     }
 
-    public Integer getID() {
+    public Long getID() {
         return ID;
     }
 
-    public void setID(Integer ID) {
+    public void setID(Long ID) {
         this.ID = ID;
     }
 
@@ -69,6 +69,8 @@ public class Task {
 
     @Override
     public int hashCode() {
-        return Objects.hash(ID);
+        int result = Objects.hash(name, ID, description, status);
+        result = 31 * result;
+        return result;
     }
 }

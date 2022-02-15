@@ -1,39 +1,43 @@
-package ru.yandex.practicum.task;
+package ru.yandex.practicum.task.logic;
 
 import ru.yandex.practicum.task.constants.TaskStatus;
 import ru.yandex.practicum.task.constants.TaskType;
+import ru.yandex.practicum.task.models.EpicTask;
+import ru.yandex.practicum.task.models.SubTask;
+import ru.yandex.practicum.task.models.Task;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
 public class TaskManager {
 
-    private static int nextTaskID;
-    private final HashMap<Integer, Task> taskMap = new HashMap<>();
-    private final HashMap<Integer, EpicTask> epicTaskMap = new HashMap<>();
-    private final HashMap<Integer, SubTask> subTaskMap = new HashMap<>();
+    private static long nextTaskID;
+    private final HashMap<Long, Task> taskMap = new HashMap<>();
+    private final HashMap<Long, EpicTask> epicTaskMap = new HashMap<>();
+    private final HashMap<Long, SubTask> subTaskMap = new HashMap<>();
 
-    public HashMap<Integer, Task> getAllTasks() {
+    public HashMap<Long, Task> getAllTasks() {
         return taskMap;
     }
 
-    public HashMap<Integer, EpicTask> getAllEpics() {
+    public HashMap<Long, EpicTask> getAllEpics() {
         return epicTaskMap;
     }
 
-    public HashMap<Integer, SubTask> getAllSubTasks() {
+    public HashMap<Long, SubTask> getAllSubTasks() {
         return subTaskMap;
     }
 
     public void deleteAllTasks() {
-        this.taskMap.clear();
+        taskMap.clear();
     }
 
     //метод удаляет все подзадачи во всех эпиках, при этом статусы Эпиков обновляются на NEW
     public void deleteAllSubTasks() {
-        this.subTaskMap.clear();
-        for (Integer nextEpicKey: this.epicTaskMap.keySet()){
-            EpicTask nextEpicTask = this.epicTaskMap.get(nextEpicKey);
+        subTaskMap.clear();
+        for (Long nextEpicKey: epicTaskMap.keySet()){
+            EpicTask nextEpicTask = epicTaskMap.get(nextEpicKey);
             nextEpicTask.getSubTasksMap().clear();
             nextEpicTask.setStatus(TaskStatus.NEW);
         }
@@ -41,17 +45,17 @@ public class TaskManager {
 
     // метод удаляет все эпики проекта, а также их подзадачи, так как подзадачи не могут быть без эпика
     public void deleteAllEpics () {
-        this.epicTaskMap.clear();
-        this.subTaskMap.clear();
+        epicTaskMap.clear();
+        subTaskMap.clear();
     }
 
-    public void deleteTaskByID(Integer taskID) {
-        this.taskMap.remove(taskID);
+    public void deleteTaskByID(Long taskID) {
+        taskMap.remove(taskID);
     }
 
     // метод удаляет конкретный эпик, а также удаляет из общей коллекции подклассов все подклассы данного эпика
-    public void deleteEpicByID(Integer taskID) {
-        Collection<SubTask> subTasksCollection = this.subTaskMap.values();
+    public void deleteEpicByID(Long taskID) {
+        Collection<SubTask> subTasksCollection = subTaskMap.values();
         Iterator<SubTask> iterator = subTasksCollection.iterator();
         while (iterator.hasNext()){
             SubTask nextSubTaskKey = iterator.next();
@@ -59,43 +63,43 @@ public class TaskManager {
                 iterator.remove();
             }
         }
-        this.epicTaskMap.remove(taskID);
+        epicTaskMap.remove(taskID);
     }
 
     /*метод кдаляет конкретный подкласс из коллекции подклассов Эпика и из общеф коллекции подклассов
       Также проверяется и при необходимости меняется статус Эпика*/
 
-    public void deleteSubTaskByID(Integer subTaskID) {
-        int parentID = this.subTaskMap.get(subTaskID).getParentId();
-        this.subTaskMap.remove(subTaskID);
-        this.epicTaskMap.get(parentID).getSubTasksMap().remove(subTaskID);
+    public void deleteSubTaskByID(Long subTaskID) {
+        long parentID = subTaskMap.get(subTaskID).getParentId();
+        subTaskMap.remove(subTaskID);
+        epicTaskMap.get(parentID).getSubTasksMap().remove(subTaskID);
         ensureEpicStatus(parentID);
     }
 
 
-    public SubTask getSubTaskByID (Integer id) {
-       return this.subTaskMap.get(id);
+    public SubTask getSubTaskByID (Long id) {
+       return subTaskMap.get(id);
     }
 
-    public Task getTaskByID (Integer id) {
-        return this.taskMap.get(id);
+    public Task getTaskByID (Long id) {
+        return taskMap.get(id);
     }
 
-    public EpicTask getEpicTaskByID (Integer id) {
-        return this.epicTaskMap.get(id);
+    public EpicTask getEpicTaskByID (Long id) {
+        return epicTaskMap.get(id);
     }
 
     public void updateTask (Task task) {
-        if (task.getID() != null && this.taskMap.get(task.getID()) != null) {
-            this.taskMap.put(task.getID(),task);
+        if (task.getID() != null && taskMap.get(task.getID()) != null) {
+            taskMap.put(task.getID(),task);
         }
     }
 
     //При обновлении подкласса проверяется и при необходимости оновляется статус соответствующего Эпика
     public void updateSubTask (SubTask task) {
-        if (task.getID() != null && this.subTaskMap.get(task.getID()) != null) {
-            this.subTaskMap.put(task.getID(),task);
-            this.epicTaskMap.get(task.getParentId()).getSubTasksMap().put(task.getID(), task);
+        if (task.getID() != null && subTaskMap.get(task.getID()) != null) {
+            subTaskMap.put(task.getID(),task);
+            epicTaskMap.get(task.getParentId()).getSubTasksMap().put(task.getID(), task);
             ensureEpicStatus(task.getParentId());
         }
     }
@@ -106,15 +110,15 @@ public class TaskManager {
 
     public void updateEpicTask (EpicTask task) {
 
-        if (task.getID() != null && this.epicTaskMap.get(task.getID()) != null) {
-            EpicTask currentEpic = this.epicTaskMap.get(task.getID());
-            HashMap<Integer, SubTask> subTask = currentEpic.getSubTasksMap();
+        if (task.getID() != null && epicTaskMap.get(task.getID()) != null) {
+            EpicTask currentEpic = epicTaskMap.get(task.getID());
+            HashMap<Long, SubTask> subTask = currentEpic.getSubTasksMap();
             task.setSubTasksMap(subTask);
             if (!(task.getStatus().equals(currentEpic.getStatus()))) {
                 task.setStatus(currentEpic.getStatus());
                 System.out.println("Поменять статус Эпика нельзя");
             }
-            this.epicTaskMap.put(task.getID(),task);
+            epicTaskMap.put(task.getID(),task);
         }
     }
 
@@ -131,8 +135,8 @@ public class TaskManager {
         saveNewTask(task, TaskType.SUB_TASK);
     }
 
-    public HashMap<Integer, SubTask> getEpicSubTasks (Integer epicID) {
-        return this.epicTaskMap.get(epicID).getSubTasksMap();
+    public HashMap<Long, SubTask> getEpicSubTasks (Long epicID) {
+        return epicTaskMap.get(epicID).getSubTasksMap();
     }
 
     /* Так как уникальный идентификатор сделан сквозным для всех типов задач, за сохранение и
@@ -144,21 +148,21 @@ public class TaskManager {
 
         switch (taskType){
             case TASK: {
-                this.taskMap.put(nextTaskID,newTask);
+                taskMap.put(nextTaskID,newTask);
                 break;
             }
             case SUB_TASK: {
                 SubTask subTask = (SubTask)newTask;
-                if (this.epicTaskMap.get(subTask.getParentId()) != null) {
-                    this.epicTaskMap.get(subTask.getParentId()).getSubTasksMap().put(nextTaskID, subTask);
-                    this.subTaskMap.put(subTask.getID(), subTask);
+                if (epicTaskMap.get(subTask.getParentId()) != null) {
+                    epicTaskMap.get(subTask.getParentId()).getSubTasksMap().put(nextTaskID, subTask);
+                    subTaskMap.put(subTask.getID(), subTask);
                 } else {
                     System.out.println("Эпик с номером "+ subTask.getParentId()+" не найден. Создание подзадачи невозможно");
                 }
                 break;
             }
             case EPIC: {
-                this.epicTaskMap.put(nextTaskID,(EpicTask)newTask);
+                epicTaskMap.put(nextTaskID,(EpicTask)newTask);
                 break;
             }
 
@@ -167,15 +171,15 @@ public class TaskManager {
     }
 
     //Данный метот вызывается при действиях с подзадачами, чтобы проверить и при необходимости изменить статус их Эпика
-    private void ensureEpicStatus (Integer epicID) {
-        EpicTask parentEpic = this.epicTaskMap.get(epicID);
+    private void ensureEpicStatus (Long epicID) {
+        EpicTask parentEpic = epicTaskMap.get(epicID);
         int doneCount=0;
         int newCount=0;
 
         if (parentEpic.getSubTasksMap().size()==0){
             parentEpic.setStatus(TaskStatus.NEW);
         } else {
-            for (Integer nextSubTask : parentEpic.getSubTasksMap().keySet()) {
+            for (Long nextSubTask : parentEpic.getSubTasksMap().keySet()) {
                 if (parentEpic.getSubTasksMap().get(nextSubTask).getStatus().equals(TaskStatus.NEW))
                     newCount++;
                 if (parentEpic.getSubTasksMap().get(nextSubTask).getStatus().equals(TaskStatus.DONE))
@@ -188,7 +192,7 @@ public class TaskManager {
             else
                 parentEpic.setStatus(TaskStatus.IN_PROCESS);
         }
-        this.epicTaskMap.put(epicID,parentEpic);
+        epicTaskMap.put(epicID,parentEpic);
 
     }
 }
