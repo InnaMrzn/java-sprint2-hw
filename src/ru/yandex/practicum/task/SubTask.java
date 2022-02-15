@@ -1,6 +1,8 @@
-public class SubTask extends Task{
+package ru.yandex.practicum.task;
 
-    private int parentId;
+public class SubTask extends Task {
+
+    private int parentID;
 
     public SubTask(String name, String description, int parentId) {
         super(name, description);
@@ -9,10 +11,15 @@ public class SubTask extends Task{
 
 
     public int getParentId() {
-        return parentId;
+        return parentID;
     }
 
     public void setParentId(int parentId) {
-        this.parentId = parentId;
+        this.parentID = parentId;
+    }
+
+    @Override
+    public String toString() {
+        return "parentID=" + parentID+ ", "+ super.toString();
     }
 }
