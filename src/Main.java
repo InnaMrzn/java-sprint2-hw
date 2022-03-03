@@ -5,6 +5,7 @@ import ru.yandex.practicum.task.logic.TaskManager;
 import ru.yandex.practicum.task.constants.TaskStatus;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class Main {
 
@@ -74,16 +75,18 @@ public class Main {
         1) должен проверяться и при необходимости обновляться статус Эпика.
         2) подзадача должна удаляться из переменной HashMap в соответствующем Эпике
          */
+
+        System.out.println("\n************ НАЧАЛО ПРОВЕРКИ УДАЛЕНИЯ ЗАДАЧ***********\n");
+        System.out.println("Удаляем подзадачу по ID "+7);
         taskManager.deleteSubTaskByID (Long.parseLong("7"));
         //Если удалить подзадачу с ID=8, в Эпике не останется подзадач и его статус должен поменяться на NEW
         //taskManager.deleteSubTaskByID (8);
-        System.out.println("\n************ НАЧАЛО ПРОВЕРКИ УДАЛЕНИЯ ЗАДАЧ***********\n");
-        System.out.println("Удаляем подзадачу по ID ");
+
         printAllTasks(taskManager);
-        System.out.println("Удаляем Эпик по ID ");
+        System.out.println("Удаляем Эпик по ID "+2);
         taskManager.deleteEpicByID(Long.parseLong("2"));
         printAllTasks(taskManager);
-        System.out.println("Удаляем обычную задачу по ID ");
+        System.out.println("Удаляем обычную задачу по ID "+1);
         taskManager.deleteTaskByID(Long.parseLong("1"));
         printAllTasks(taskManager);
 
@@ -102,18 +105,20 @@ public class Main {
         }
         System.out.println("\n");
 
-        for (long nextTask: taskManager.getAllSubTasks().keySet()){
-            System.out.println(taskManager.getAllSubTasks().get(nextTask));
-        }
-        System.out.println("\n");
 
         for (long nextEpic: taskManager.getAllEpics().keySet()){
             System.out.println(taskManager.getAllEpics().get(nextEpic));
-            HashMap<Long, SubTask> nextSubTasksMap = taskManager.getAllEpics().get(nextEpic).getSubTasksMap();
-            for (long nextSubTask: nextSubTasksMap.keySet()) {
-                System.out.println ("    "+nextSubTasksMap.get(nextSubTask));
+            List<Long> nextSubTasksIDsList = taskManager.getAllEpics().get(nextEpic).getSubTasksIDsList();
+            System.out.println("Subtasks: ");
+            for (Long nextSubTaskID: nextSubTasksIDsList) {
+                System.out.print ("    "+nextSubTaskID);
             }
+            System.out.println();
 
+        }
+
+        for (long nextTask: taskManager.getAllSubTasks().keySet()){
+            System.out.println(taskManager.getAllSubTasks().get(nextTask));
         }
     }
 }

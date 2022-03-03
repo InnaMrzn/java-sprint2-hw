@@ -1,20 +1,23 @@
 package ru.yandex.practicum.task.models;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 public class EpicTask extends Task {
 
-    public void setSubTasksMap(HashMap<Long, SubTask> subTasksMap) {
-        this.subTasksMap = subTasksMap;
-    }
+    private List<Long> subTasksIDsList = new ArrayList<>();
 
-    private HashMap<Long, SubTask> subTasksMap = new HashMap<>();
+    public void setSubTasksIDsList (List<Long> subTasksIDsList) {
+        this.subTasksIDsList = subTasksIDsList;
+
+    }
 
     public EpicTask (String name, String description) {
         super(name, description);
     }
 
-    public HashMap<Long, SubTask> getSubTasksMap() {
-        return subTasksMap;
+    public List<Long> getSubTasksIDsList() {
+        return subTasksIDsList;
+
     }
 }

@@ -9,6 +9,7 @@ import ru.yandex.practicum.task.models.Task;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 public class TaskManager {
 
@@ -33,12 +34,12 @@ public class TaskManager {
         taskMap.clear();
     }
 
-    //метод удаляет все подзадачи во всех эпиках, при этом статусы Эпиков обновляются на NEW
+    //метод удаляет список с ID  подзадач во всех эпиках, при этом статусы Эпиков обновляются на NEW
     public void deleteAllSubTasks() {
         subTaskMap.clear();
         for (Long nextEpicKey: epicTaskMap.keySet()){
             EpicTask nextEpicTask = epicTaskMap.get(nextEpicKey);
-            nextEpicTask.getSubTasksMap().clear();
+            nextEpicTask.getSubTasksIDsList().clear();
             nextEpicTask.setStatus(TaskStatus.NEW);
         }
     }
@@ -66,13 +67,14 @@ public class TaskManager {
         epicTaskMap.remove(taskID);
     }
 
-    /*метод кдаляет конкретный подкласс из коллекции подклассов Эпика и из общеф коллекции подклассов
+    /*метод удаляет конкретный подкласс из коллекции ID подклассов Эпика и из общеф коллекции подклассов
       Также проверяется и при необходимости меняется статус Эпика*/
 
     public void deleteSubTaskByID(Long subTaskID) {
         long parentID = subTaskMap.get(subTaskID).getParentId();
         subTaskMap.remove(subTaskID);
-        epicTaskMap.get(parentID).getSubTasksMap().remove(subTaskID);
+        List<Long> epicSubTaskIDs = epicTaskMap.get(parentID).getSubTasksIDsList();
+        epicSubTaskIDs.remove(subTaskID);
         ensureEpicStatus(parentID);
     }
 
@@ -99,26 +101,25 @@ public class TaskManager {
     public void updateSubTask (SubTask task) {
         if (task.getID() != null && subTaskMap.get(task.getID()) != null) {
             subTaskMap.put(task.getID(),task);
-            epicTaskMap.get(task.getParentId()).getSubTasksMap().put(task.getID(), task);
             ensureEpicStatus(task.getParentId());
         }
     }
 
     /*При обновлении Эпика запрещается обновление поля status.
-     Также к новому Эпику привязываются существующие в старом подклассы. Таким образом при обновлении названия
-     Эпика его подклассы не будут потеряны*/
+     Также к новому Эпику привязываются существующие в старом ID подклассов. Таким образом при обновлении названия
+     Эпика ID его подклассов не будут потеряны*/
 
-    public void updateEpicTask (EpicTask task) {
+    public void updateEpicTask (EpicTask updatedEpic) {
 
-        if (task.getID() != null && epicTaskMap.get(task.getID()) != null) {
-            EpicTask currentEpic = epicTaskMap.get(task.getID());
-            HashMap<Long, SubTask> subTask = currentEpic.getSubTasksMap();
-            task.setSubTasksMap(subTask);
-            if (!(task.getStatus().equals(currentEpic.getStatus()))) {
-                task.setStatus(currentEpic.getStatus());
+        if (updatedEpic.getID() != null && epicTaskMap.get(updatedEpic.getID()) != null) {
+            EpicTask currentEpic = epicTaskMap.get(updatedEpic.getID());
+            List<Long> subTaskIDs = currentEpic.getSubTasksIDsList();
+            updatedEpic.setSubTasksIDsList(subTaskIDs);
+            if (!(updatedEpic.getStatus().equals(currentEpic.getStatus()))) {
+                updatedEpic.setStatus(currentEpic.getStatus());
                 System.out.println("Поменять статус Эпика нельзя");
             }
-            epicTaskMap.put(task.getID(),task);
+            epicTaskMap.put(updatedEpic.getID(),updatedEpic);
         }
     }
 
@@ -133,10 +134,18 @@ public class TaskManager {
     public void createNewSubTask (SubTask task){
         task.setParentId(task.getParentId());
         saveNewTask(task, TaskType.SUB_TASK);
+        ensureEpicStatus(task.getParentId());
     }
 
     public HashMap<Long, SubTask> getEpicSubTasks (Long epicID) {
-        return epicTaskMap.get(epicID).getSubTasksMap();
+        List<Long> subTasksIDs = epicTaskMap.get(epicID).getSubTasksIDsList();
+        HashMap<Long, SubTask> epicSubTasks = new HashMap<>();
+        for (Long subTaskID: subTasksIDs) {
+            if (subTaskMap.get(subTaskID)!=null){
+                epicSubTasks.put(subTaskID,subTaskMap.get(subTaskID));
+            }
+        }
+        return epicSubTasks;
     }
 
     /* Так как уникальный идентификатор сделан сквозным для всех типов задач, за сохранение и
@@ -154,7 +163,7 @@ public class TaskManager {
             case SUB_TASK: {
                 SubTask subTask = (SubTask)newTask;
                 if (epicTaskMap.get(subTask.getParentId()) != null) {
-                    epicTaskMap.get(subTask.getParentId()).getSubTasksMap().put(nextTaskID, subTask);
+                    epicTaskMap.get(subTask.getParentId()).getSubTasksIDsList().add(subTask.getID());
                     subTaskMap.put(subTask.getID(), subTask);
                 } else {
                     System.out.println("Эпик с номером "+ subTask.getParentId()+" не найден. Создание подзадачи невозможно");
@@ -176,18 +185,18 @@ public class TaskManager {
         int doneCount=0;
         int newCount=0;
 
-        if (parentEpic.getSubTasksMap().size()==0){
+        if (parentEpic.getSubTasksIDsList().size()==0){
             parentEpic.setStatus(TaskStatus.NEW);
         } else {
-            for (Long nextSubTask : parentEpic.getSubTasksMap().keySet()) {
-                if (parentEpic.getSubTasksMap().get(nextSubTask).getStatus().equals(TaskStatus.NEW))
+            for (Long nextSubTaskID : parentEpic.getSubTasksIDsList()) {
+                if (subTaskMap.get(nextSubTaskID).getStatus().equals(TaskStatus.NEW))
                     newCount++;
-                if (parentEpic.getSubTasksMap().get(nextSubTask).getStatus().equals(TaskStatus.DONE))
+                if (subTaskMap.get(nextSubTaskID).getStatus().equals(TaskStatus.DONE))
                     doneCount++;
             }
-            if (newCount == parentEpic.getSubTasksMap().size())
+            if (newCount == parentEpic.getSubTasksIDsList().size())
                 parentEpic.setStatus(TaskStatus.NEW);
-            else if (doneCount == parentEpic.getSubTasksMap().size())
+            else if (doneCount == parentEpic.getSubTasksIDsList().size())
                 parentEpic.setStatus(TaskStatus.DONE);
             else
                 parentEpic.setStatus(TaskStatus.IN_PROCESS);
