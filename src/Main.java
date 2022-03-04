@@ -1,3 +1,4 @@
+import ru.yandex.practicum.task.logic.Managers;
 import ru.yandex.practicum.task.models.EpicTask;
 import ru.yandex.practicum.task.models.SubTask;
 import ru.yandex.practicum.task.models.Task;
@@ -12,7 +13,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        TaskManager taskManager = new TaskManager();
+        TaskManager taskManager = Managers.getTaskManager();
         /* Это блок тестирования, будет удален после прохождение проверки кода.
         Симулирует работу с методами, которые в реальности будут производиться из интерфейса пользователя.*.
         */
