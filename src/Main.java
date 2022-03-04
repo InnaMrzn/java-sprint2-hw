@@ -13,12 +13,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        TaskManager taskManager = Managers.getTaskManager();
+        TaskManager taskManager = Managers.getDefault();
         /* Это блок тестирования, будет удален после прохождение проверки кода.
         Симулирует работу с методами, которые в реальности будут производиться из интерфейса пользователя.*.
         */
-
-        //Проверяет метод создания  задач разных типов.
+        System.out.println("**********НАЧАЛО ПРОВЕРКИ СОЗДАНИЯ ЗАДАЧ***********\n");
+        //Проверяет метод создания  задач разных типов. ID генерится сквозной нумерацией для всех типов 0, 1, 2 и т.д.
         Task myTask1 = new Task("Простая задача 1","Описание простой задачи 1");
         Task myTask2 = new Task("Простая задача 2","Описание простой задачи 2");
         taskManager.createNewTask(myTask1);
@@ -29,16 +29,47 @@ public class Main {
         taskManager.createNewEpicTask(epicTask1);
         taskManager.createNewEpicTask(epicTask2);
 
-        // В классе TaskManager сквозная нумерация ID для всех типов классов начиная с 0. Поэтому epicTask1 будет иметь ID 2
-        taskManager.createNewSubTask(new SubTask("Подкласс 1", "Описание подкласса 1", 2));
-        taskManager.createNewSubTask(new SubTask("Подкласс 2", "Описание подкласса 2", 2));
-        taskManager.createNewSubTask(new SubTask("Подкласс 3", "Описание подкласса 3", 2));
+        // Создаем Подзадачи для двух Эпиков (ID 2 и 3)
+        taskManager.createNewSubTask(new SubTask("Подзадача 1", "Описание Подзадача 1", 2));
+        taskManager.createNewSubTask(new SubTask("Подзадача 2", "Описание Подзадача 2", 2));
+        taskManager.createNewSubTask(new SubTask("Подзадача 3", "Описание Подзадача 3", 2));
 
-        taskManager.createNewSubTask(new SubTask("Подкласс 4", "Описание подкласса 4", 3));
-        taskManager.createNewSubTask(new SubTask("Подкласс 5", "Описание подкласса 5", 3));
+        taskManager.createNewSubTask(new SubTask("Подзадача 4", "Описание Подзадача 4", 3));
+        taskManager.createNewSubTask(new SubTask("Подзадача 5", "Описание Подзадача 5", 3));
 
-        System.out.println("**********НАЧАЛО ПРОВЕРКИ СОЗДАНИЯ ЗАДАЧ***********\n");
+
         printAllTasks(taskManager);
+
+        //проверяем работу менеджера истории задач
+        System.out.println("\n************ НАЧАЛО ПРОВЕРКИ ИСТОРИИ ЗАДАЧ***********\n");
+        System.out.println("случай когда просмотренных задач меньше 10:");
+
+        taskManager.getTaskByID(0L);
+        taskManager.getTaskByID(1L);
+        taskManager.getTaskByID(0L);
+        taskManager.getSubTaskByID(7L);
+        taskManager.getEpicTaskByID(3L);
+        List<Task> history = taskManager.getHistoryManager().getHistory();
+        for (Task task: history){
+            System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
+        }
+
+        //добавим еще просмотры, чтобы общее кол-во было больше 10
+        taskManager.getSubTaskByID(7L);
+        taskManager.getSubTaskByID(4L);
+        taskManager.getSubTaskByID(7L);
+        taskManager.getSubTaskByID(8L);
+        taskManager.getSubTaskByID(7L);
+        taskManager.getSubTaskByID(4L);
+        List<Task> longHistory = taskManager.getHistoryManager().getHistory();
+        System.out.println("\nслучай когда просмотренных задач больше 10:");
+        for (Task task: longHistory){
+            System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
+        }
+
+
+
+        System.out.println("\n\n************ НАЧАЛО ПРОВЕРКИ ОБНОВЛЕНИЯ ЗАДАЧ***********\n");
 
         //Проверяем как работает обновление задач. Особое внимание изменению статуса Эпика при различных комбинациях подзадач
         Task updatedTask = new Task("Обновлено имя простой задачи 1","Обновлено описание простой задачи 1");
@@ -66,8 +97,9 @@ public class Main {
         //updatedSubTask.setStatus(TaskStatus.NEW);
         taskManager.updateSubTask(updatedSubTask);
 
-        System.out.println("\n************ НАЧАЛО ПРОВЕРКИ ОБНОВЛЕНИЯ ЗАДАЧ***********\n");
         printAllTasks(taskManager);
+
+
 
         /* проверяем удаление задач.
         При удалении Эпика должны удаляться все его подзадачи из общего списка подзадач.

@@ -17,6 +17,12 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Long, Task> taskMap = new HashMap<>();
     private final HashMap<Long, EpicTask> epicTaskMap = new HashMap<>();
     private final HashMap<Long, SubTask> subTaskMap = new HashMap<>();
+    private HistoryManager historyMgr = Managers.getDefaultHistory();
+
+    @Override
+    public HistoryManager getHistoryManager(){
+        return historyMgr;
+    }
 
     @Override
     public HashMap<Long, Task> getAllTasks() {
@@ -93,16 +99,19 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public SubTask getSubTaskByID (Long id) {
+        historyMgr.add(subTaskMap.get(id));
         return subTaskMap.get(id);
     }
 
     @Override
     public Task getTaskByID (Long id) {
+        historyMgr.add(taskMap.get(id));
         return taskMap.get(id);
     }
 
     @Override
     public EpicTask getEpicTaskByID (Long id) {
+        historyMgr.add(epicTaskMap.get(id));
         return epicTaskMap.get(id);
     }
 

@@ -1,4 +1,5 @@
 package ru.yandex.practicum.task.logic;
+
 import ru.yandex.practicum.task.models.EpicTask;
 import ru.yandex.practicum.task.models.SubTask;
 import ru.yandex.practicum.task.models.Task;
@@ -6,6 +7,8 @@ import java.util.HashMap;
 
 
 public interface TaskManager {
+
+    HistoryManager getHistoryManager();
 
     HashMap<Long, Task> getAllTasks();
 
@@ -44,6 +47,5 @@ public interface TaskManager {
     void createNewSubTask (SubTask task);
 
     HashMap<Long, SubTask> getEpicSubTasks (Long epicID);
-
 
 }
