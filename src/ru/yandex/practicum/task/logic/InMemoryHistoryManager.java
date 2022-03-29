@@ -33,8 +33,8 @@ public class InMemoryHistoryManager implements HistoryManager{
     public void remove(long id){
 
         if (inHistoryMap.get(id) != null) {
-            if (inHistoryMap.get(id).data instanceof EpicTask){
-                List<Long> subTaskIDs= ((EpicTask)inHistoryMap.get(id).data).getSubTasksIDsList();
+            if (inHistoryMap.get(id).getData() instanceof EpicTask){
+                List<Long> subTaskIDs= ((EpicTask)inHistoryMap.get(id).getData()).getSubTasksIDsList();
                 for (Long subID: subTaskIDs) {
                     if (inHistoryMap.get(subID) != null)
                         linkedHistory.removeNode(inHistoryMap.get(subID));
@@ -50,17 +50,17 @@ public class InMemoryHistoryManager implements HistoryManager{
     //Внутренний класс, представляющий специальную реализацию LinkedList для работы с историей просмотров
      class HistoryLinkedList<E> {
 
-        private TaskHistoryNode<Task> head;
-        private TaskHistoryNode<Task> tail;
+        private TaskHistoryNode head;
+        private TaskHistoryNode tail;
         private long size = 0L;
 
         //преобразует коллекцию HistoryLikedList с нодами в ArrayList с объектами Task и возвращает его
         private List<Task> getTasks() {
             List<Task> historyList = new ArrayList();
-            TaskHistoryNode<Task> currNode = head;
+            TaskHistoryNode currNode = head;
 
             while (currNode != null) {
-                historyList.add(currNode.data);
+                historyList.add(currNode.getData());
                 currNode = currNode.next;
             }
 
@@ -91,7 +91,7 @@ public class InMemoryHistoryManager implements HistoryManager{
                 tail = newNode;
                 tail.next = null;
             }
-            TaskHistoryNode<Task> repeatedNode = inHistoryMap.get(newTask.getID());
+            TaskHistoryNode repeatedNode = inHistoryMap.get(newTask.getID());
 
             if (repeatedNode != null){
                 removeNode(repeatedNode);
@@ -102,7 +102,7 @@ public class InMemoryHistoryManager implements HistoryManager{
         }
 
         //удаляет ноду из LinkedList и мапы
-        private void removeNode(TaskHistoryNode<Task> node) {
+        private void removeNode(TaskHistoryNode node) {
 
             if(node == head)
                 head = node.next;
