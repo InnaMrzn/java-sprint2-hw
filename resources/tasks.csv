@@ -1,18 +1,6 @@
 id,type,name,status,description,epic
-1,TASK,Task1,NEW,Description task1
-2,EPIC,Epic2,DONE,Description epic2
+1,TASK,Task1,NEW,Description task1,
+2,EPIC,Epic2,DONE,Description epic2,
 3,SUBTASK,Sub Task2,DONE,Description sub task3,2
-4,TASK,Простая задача 2,NEW,Описание простой задачи 2
-5,EPIC,Эпик 1 ,NEW,Описание Эпик 1
-6,EPIC,Эпик 2 ,NEW,Описание Эпик 2
-7,SUBTASK,Подзадача 1,NEW,Описание Подзадача 1,5
-8,SUBTASK,Подзадача 2,NEW,Описание Подзадача 2,5
-9,SUBTASK,Подзадача 3,NEW,Описание Подзадача 3,5
-10,SUBTASK,Подзадача 4,NEW,Описание Подзадача 4,6
-11,SUBTASK,Подзадача 5,NEW,Описание Подзадача 5,6
-12,EPIC,Эпик 3 ,NEW,Описание Эпик 3
-13,TASK,Простая задача 3,NEW,Описание простой задачи 3
-14,TASK,Простая задача 4,NEW,Описание простой задачи 4
-15,TASK,Простая задача 5,NEW,Описание простой задачи 5
 
-3,7,5,9,8,13,12,14,15,
+2,3

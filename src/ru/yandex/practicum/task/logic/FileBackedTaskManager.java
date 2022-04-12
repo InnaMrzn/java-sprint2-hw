@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.util.List;
 import java.util.TreeMap;
 
 
@@ -26,8 +26,91 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private FileBackedTaskManager(Path filePath){
         super();
         backupPath = filePath;
-        loadFromFile(filePath);
+
+        loadFromFile(filePath.toFile());
     }
+
+    public static void main (String[] args){
+        TaskManager taskManager = Managers.getDefault();
+        long initialID = taskManager.getNextTaskID();
+        System.out.println("**********НАЧАЛО ПРОВЕРКИ СОЗДАНИЯ ЗАДАЧ***********\n");
+        //Проверяет метод создания  задач разных типов. ID генерится сквозной нумерацией для всех типов 0, 1, 2 и т.д.
+        Task myTask1 = new Task("Простая задача 1","Описание простой задачи 1");
+        Task myTask2 = new Task("Простая задача 2","Описание простой задачи 2");
+        taskManager.createNewTask(myTask1);//ID 0
+        taskManager.createNewTask(myTask2);//ID 1
+
+        EpicTask epicTask1 = new EpicTask("Эпик 1 ", "Описание Эпик 1");
+        EpicTask epicTask2 = new EpicTask("Эпик 2 ", "Описание Эпик 2");
+        taskManager.createNewEpicTask(epicTask1);//ID 2
+        taskManager.createNewEpicTask(epicTask2);//ID 3
+
+        // Создаем Подзадачи для двух Эпиков (ID 2 и 3)
+        taskManager.createNewSubTask(new SubTask("Подзадача 1", "Описание Подзадача 1", initialID+2));
+        taskManager.createNewSubTask(new SubTask("Подзадача 2", "Описание Подзадача 2", initialID+2));
+        taskManager.createNewSubTask(new SubTask("Подзадача 3", "Описание Подзадача 3", initialID+2));
+
+        taskManager.createNewSubTask(new SubTask("Подзадача 4", "Описание Подзадача 4", initialID+3));
+        taskManager.createNewSubTask(new SubTask("Подзадача 5", "Описание Подзадача 5", initialID+3));
+
+        //создаем Эпик без Подзадач
+        taskManager.createNewEpicTask(new EpicTask("Эпик 3 ", "Описание Эпик 3"));
+
+        //создаем еще три задачи, чтобы общее число было больше 10
+
+        taskManager.createNewTask(new Task("Простая задача 3","Описание простой задачи 3"));//
+        taskManager.createNewTask(new Task("Простая задача 4","Описание простой задачи 4"));//
+        taskManager.createNewTask(new Task("Простая задача 5","Описание простой задачи 5"));//
+
+       printAllTasks(taskManager);
+
+        //проверяем работу менеджера истории задач
+        System.out.println("\n************ НАЧАЛО ПРОВЕРКИ ИСТОРИИ ЗАДАЧ***********\n");
+        System.out.println("случай когда просмотренных задач меньше 10:");
+
+
+        taskManager.getTaskByID(initialID+0L);
+        taskManager.getTaskByID(1L);
+        taskManager.getTaskByID(initialID+0L);
+        taskManager.getSubTaskByID(initialID+7L);
+        taskManager.getEpicTaskByID(initialID+3L);
+        taskManager.getTaskByID(initialID+0L);
+        List<Task> history = taskManager.getHistoryManager().getHistory();
+        for (Task task: history){
+            System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
+
+        }
+        System.out.println();
+
+        //добавим еще просмотры, чтобы общее кол-во после удаления повторов было больше 10
+        System.out.println("\nслучай когда просмотренных уникальных задач больше 10:"+
+                "\nпри добавлении в историю каждой задачи свыше 10-ти, удаляется самая первая задча в истории");
+        taskManager.getSubTaskByID(initialID+7L);
+        taskManager.getSubTaskByID(initialID+4L);
+        taskManager.getSubTaskByID(initialID+7L);
+        taskManager.getSubTaskByID(initialID+8L);
+        taskManager.getSubTaskByID(initialID+7L);
+        taskManager.getSubTaskByID(initialID+4L);
+        taskManager.getEpicTaskByID(initialID+2L);
+        taskManager.getSubTaskByID(initialID+5L);
+        taskManager.getSubTaskByID(initialID+6L);
+        taskManager.getSubTaskByID(initialID+5L);
+        taskManager.getTaskByID(initialID+10L);
+        taskManager.getTaskByID(initialID+11L);
+        taskManager.getEpicTaskByID(initialID+9L);
+        taskManager.getTaskByID(initialID+11L);
+        taskManager.getTaskByID(initialID+12L);
+
+        HistoryManager historyManager = taskManager.getHistoryManager();
+
+        for (Task task: historyManager.getHistory()){
+            System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
+
+        }
+        System.out.println();
+
+    }
+
 
     /* переопределенные методы родительского класса. К каждому такому методу добавляется сохранение состояния.
     для операций изменения (создание, обновление, удаление) состояние записывается после совершения операции.
@@ -130,8 +213,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     /* данный метод вызывается при запуске программы один раз, восстанавливая состояние менеджера
     из файла бекапа
      */
-    private void loadFromFile(Path path){
-
+    private void loadFromFile(File file){
+        Path path = Paths.get(file.getAbsolutePath());
         try {
         if (Files.exists(path)) {
             String fileContent = Files.readString(path, StandardCharsets.UTF_8);
@@ -255,6 +338,30 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     static FileBackedTaskManager getManagerFromFile(String relativeFilePath) {
 
         return new FileBackedTaskManager (Paths.get(relativeFilePath).toAbsolutePath());
+    }
+
+    private static void printAllTasks(TaskManager taskManager) {
+
+        for (long nextTask: taskManager.getAllTasks().keySet()){
+            System.out.println(taskManager.getAllTasks().get(nextTask));
+        }
+        System.out.println("\n");
+
+
+        for (long nextEpic: taskManager.getAllEpics().keySet()){
+            System.out.println(taskManager.getAllEpics().get(nextEpic));
+            List<Long> nextSubTasksIDsList = taskManager.getAllEpics().get(nextEpic).getSubTasksIDsList();
+            System.out.println("Subtasks: ");
+            for (Long nextSubTaskID: nextSubTasksIDsList) {
+                System.out.print ("    "+nextSubTaskID);
+            }
+            System.out.println();
+
+        }
+
+        for (long nextTask: taskManager.getAllSubTasks().keySet()){
+            System.out.println(taskManager.getAllSubTasks().get(nextTask));
+        }
     }
 
 
