@@ -8,6 +8,9 @@ import java.util.HashMap;
 
 public interface TaskManager {
 
+    //этот метод добавлен для целей тестирования. Можно его удалить после тестирования
+    long getNextTaskID();
+
     HistoryManager getHistoryManager();
 
     HashMap<Long, Task> getAllTasks();
@@ -47,5 +50,8 @@ public interface TaskManager {
     void createNewSubTask (SubTask task);
 
     HashMap<Long, SubTask> getEpicSubTasks (Long epicID);
+
+
+
 
 }

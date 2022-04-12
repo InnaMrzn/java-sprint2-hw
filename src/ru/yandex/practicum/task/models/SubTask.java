@@ -1,10 +1,9 @@
 package ru.yandex.practicum.task.models;
 
-import java.util.Objects;
-
 public class SubTask extends Task {
 
-    private long parentID;
+   private long parentID;
+
 
     public SubTask(String name, String description, long parentId) {
         super(name, description);

@@ -1,12 +1,10 @@
+
 import ru.yandex.practicum.task.logic.HistoryManager;
 import ru.yandex.practicum.task.logic.Managers;
 import ru.yandex.practicum.task.models.EpicTask;
 import ru.yandex.practicum.task.models.SubTask;
 import ru.yandex.practicum.task.models.Task;
 import ru.yandex.practicum.task.logic.TaskManager;
-import ru.yandex.practicum.task.constants.TaskStatus;
-
-import java.util.HashMap;
 import java.util.List;
 
 public class Main {
@@ -15,6 +13,17 @@ public class Main {
     public static void main(String[] args) {
 
         TaskManager taskManager = Managers.getDefault();
+        long initialID = taskManager.getNextTaskID();
+        System.out.println(initialID);
+        /*FileBackedTaskManager taskManager = (FileBackedTaskManager)Managers.getDefault();
+
+        HashMap<Long,SubTask>  tasks = taskManager.getAllSubTasks();
+        System.out.println(tasks.size());
+        for (Long id: tasks.keySet()){
+            System.out.println(tasks.get(id));
+        }
+        taskManager.save();*/
+
         /* Это блок тестирования, будет удален после прохождение проверки кода.
         Симулирует работу с методами, которые в реальности будут производиться из интерфейса пользователя.*.
         */
@@ -31,72 +40,68 @@ public class Main {
         taskManager.createNewEpicTask(epicTask2);//ID 3
 
         // Создаем Подзадачи для двух Эпиков (ID 2 и 3)
-        taskManager.createNewSubTask(new SubTask("Подзадача 1", "Описание Подзадача 1", 2));//ID 4
-        taskManager.createNewSubTask(new SubTask("Подзадача 2", "Описание Подзадача 2", 2));//ID 5
-        taskManager.createNewSubTask(new SubTask("Подзадача 3", "Описание Подзадача 3", 2));//ID 6
+        taskManager.createNewSubTask(new SubTask("Подзадача 1", "Описание Подзадача 1", initialID+2));
+        taskManager.createNewSubTask(new SubTask("Подзадача 2", "Описание Подзадача 2", initialID+2));
+        taskManager.createNewSubTask(new SubTask("Подзадача 3", "Описание Подзадача 3", initialID+2));
 
-        taskManager.createNewSubTask(new SubTask("Подзадача 4", "Описание Подзадача 4", 3));//ID 7
-        taskManager.createNewSubTask(new SubTask("Подзадача 5", "Описание Подзадача 5", 3));//ID 8
+        taskManager.createNewSubTask(new SubTask("Подзадача 4", "Описание Подзадача 4", initialID+3));
+        taskManager.createNewSubTask(new SubTask("Подзадача 5", "Описание Подзадача 5", initialID+3));
 
         //создаем Эпик без Подзадач
-        taskManager.createNewEpicTask(new EpicTask("Эпик 3 ", "Описание Эпик 3"));//ID 9
+        taskManager.createNewEpicTask(new EpicTask("Эпик 3 ", "Описание Эпик 3"));
 
         //создаем еще три задачи, чтобы общее число было больше 10
 
-        taskManager.createNewTask(new Task("Простая задача 3","Описание простой задачи 3"));// ID 10
-        taskManager.createNewTask(new Task("Простая задача 4","Описание простой задачи 4"));// ID 11
-        taskManager.createNewTask(new Task("Простая задача 5","Описание простой задачи 5"));// ID 12
+        taskManager.createNewTask(new Task("Простая задача 3","Описание простой задачи 3"));//
+        taskManager.createNewTask(new Task("Простая задача 4","Описание простой задачи 4"));//
+        taskManager.createNewTask(new Task("Простая задача 5","Описание простой задачи 5"));//
 
-        //printAllTasks(taskManager);
+        printAllTasks(taskManager);
 
         //проверяем работу менеджера истории задач
         System.out.println("\n************ НАЧАЛО ПРОВЕРКИ ИСТОРИИ ЗАДАЧ***********\n");
         System.out.println("случай когда просмотренных задач меньше 10:");
 
 
-        taskManager.getTaskByID(0L);
+        taskManager.getTaskByID(initialID+0L);
         taskManager.getTaskByID(1L);
-        taskManager.getTaskByID(0L);
-        taskManager.getSubTaskByID(7L);
-        taskManager.getEpicTaskByID(3L);
-        taskManager.getTaskByID(0L);
+        taskManager.getTaskByID(initialID+0L);
+        taskManager.getSubTaskByID(initialID+7L);
+        taskManager.getEpicTaskByID(initialID+3L);
+        taskManager.getTaskByID(initialID+0L);
         List<Task> history = taskManager.getHistoryManager().getHistory();
         for (Task task: history){
             System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
+
         }
+        System.out.println();
 
         //добавим еще просмотры, чтобы общее кол-во после удаления повторов было больше 10
         System.out.println("\nслучай когда просмотренных уникальных задач больше 10:"+
                 "\nпри добавлении в историю каждой задачи свыше 10-ти, удаляется самая первая задча в истории");
-        taskManager.getSubTaskByID(7L);
-        taskManager.getSubTaskByID(4L);
-        taskManager.getSubTaskByID(7L);
-        taskManager.getSubTaskByID(8L);
-        taskManager.getSubTaskByID(7L);
-        taskManager.getSubTaskByID(4L);
-        taskManager.getEpicTaskByID(2L);
-        taskManager.getSubTaskByID(5L);
-        taskManager.getSubTaskByID(6L);
-        taskManager.getSubTaskByID(5L);
-        taskManager.getTaskByID(10L);
-        taskManager.getTaskByID(11L);
-        taskManager.getTaskByID(11L);
-        taskManager.getTaskByID(12L);
+        taskManager.getSubTaskByID(initialID+7L);
+        taskManager.getSubTaskByID(initialID+4L);
+        taskManager.getSubTaskByID(initialID+7L);
+        taskManager.getSubTaskByID(initialID+8L);
+        taskManager.getSubTaskByID(initialID+7L);
+        taskManager.getSubTaskByID(initialID+4L);
+        taskManager.getEpicTaskByID(initialID+2L);
+        taskManager.getSubTaskByID(initialID+5L);
+        taskManager.getSubTaskByID(initialID+6L);
+        taskManager.getSubTaskByID(initialID+5L);
+        taskManager.getTaskByID(initialID+10L);
+        taskManager.getTaskByID(initialID+11L);
+        taskManager.getEpicTaskByID(initialID+9L);
+        taskManager.getTaskByID(initialID+11L);
+        taskManager.getTaskByID(initialID+12L);
 
         HistoryManager historyManager = taskManager.getHistoryManager();
 
         for (Task task: historyManager.getHistory()){
             System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
-        }
 
-        System.out.println("\n\n******НАЧАЛО ПРОВЕРКИ УДАЛЕНИЯ МЕТОДА remove(int ID) в классе InMemoryHistoryManager*******"+
-                "\n*******Удаляем Задачу с ID=0 и Эпик с ID=2 (автоматически удаляются подзадачи 4, 5 и 6)");
-        historyManager.remove(0);
-        historyManager.remove(2);
-
-        for (Task task: historyManager.getHistory()){
-            System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
         }
+        System.out.println();
 
 
 
@@ -130,29 +135,40 @@ public class Main {
 
         printAllTasks(taskManager);
 
+*/
 
-
-        /* проверяем удаление задач.
+        /*проверяем удаление задач.
         При удалении Эпика должны удаляться все его подзадачи из общего списка подзадач.
         При удалении всех эпиков должны удаляться все подзадачи
         При удалении подзадачи:
         1) должен проверяться и при необходимости обновляться статус Эпика.
         2) подзадача должна удаляться из переменной HashMap в соответствующем Эпике
+
+        При удаления любого типа задач номер этой задачи должен удаляться из истории просмотров
          */
 
-        /*System.out.println("\n************ НАЧАЛО ПРОВЕРКИ УДАЛЕНИЯ ЗАДАЧ***********\n");
-        System.out.println("Удаляем подзадачу по ID "+7);
-        taskManager.deleteSubTaskByID (Long.parseLong("7"));
-        //Если удалить подзадачу с ID=8, в Эпике не останется подзадач и его статус должен поменяться на NEW
-        //taskManager.deleteSubTaskByID (8);
+        System.out.println("\n************ НАЧАЛО ПРОВЕРКИ УДАЛЕНИЯ ЗАДАЧ***********\n");
 
-        printAllTasks(taskManager);
-        System.out.println("Удаляем Эпик по ID "+2);
-        taskManager.deleteEpicByID(Long.parseLong("2"));
-        printAllTasks(taskManager);
-        System.out.println("Удаляем обычную задачу по ID "+1);
-        taskManager.deleteTaskByID(Long.parseLong("1"));
-        printAllTasks(taskManager);
+        //taskManager.deleteSubTaskByID (initialID+Long.parseLong("7"));
+
+        //printAllTasks(taskManager);
+        /*for (Task task: historyManager.getHistory()){
+            System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
+
+        }*/
+        System.out.println();
+
+        //taskManager.deleteEpicByID(initialID+Long.parseLong("2"));
+        //printAllTasks(taskManager);
+        /*for (Task task: historyManager.getHistory()){
+            System.out.print("Тип:"+task.getClass().getSimpleName()+" ID="+task.getID()+", ");
+
+        }*/
+        System.out.println();
+
+        //taskManager.deleteTaskByID(initialID+Long.parseLong("1"));
+        //printAllTasks(taskManager);
+        //taskManager.deleteAllSubTasks();
 
         //System.out.println("Удаляем все задачи ");
         //taskManager.deleteAllTasks();

@@ -13,6 +13,7 @@ public class TaskHistoryNode {
     }
 
     public Task getData() {
+
         return data;
     }
 

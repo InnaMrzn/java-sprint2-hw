@@ -13,20 +13,25 @@ import java.util.List;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    private static long nextTaskID;
-    private final HashMap<Long, Task> taskMap = new HashMap<>();
-    private final HashMap<Long, EpicTask> epicTaskMap = new HashMap<>();
-    private final HashMap<Long, SubTask> subTaskMap = new HashMap<>();
-    private HistoryManager historyMgr = Managers.getDefaultHistory();
+    protected static long nextTaskID;
+    protected final HashMap<Long, Task> taskMap = new HashMap<>();
+    protected final HashMap<Long, EpicTask> epicTaskMap = new HashMap<>();
+    protected final HashMap<Long, SubTask> subTaskMap = new HashMap<>();
+    protected HistoryManager historyMgr = Managers.getDefaultHistory();
+
+    @Override
+    public long getNextTaskID(){
+        return nextTaskID;
+    }
 
     @Override
     public HistoryManager getHistoryManager(){
+
         return historyMgr;
     }
 
     @Override
     public HashMap<Long, Task> getAllTasks() {
-
         return taskMap;
     }
 
@@ -44,13 +49,19 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
-
+        for (Long id: taskMap.keySet()){
+            historyMgr.remove(id);
+        }
         taskMap.clear();
+
     }
 
     //метод удаляет список с ID  подзадач во всех эпиках, при этом статусы Эпиков обновляются на NEW
     @Override
     public void deleteAllSubTasks() {
+        for (Long id: subTaskMap.keySet()){
+            historyMgr.remove(id);
+        }
         subTaskMap.clear();
         for (Long nextEpicKey: epicTaskMap.keySet()){
             EpicTask nextEpicTask = epicTaskMap.get(nextEpicKey);
@@ -62,6 +73,9 @@ public class InMemoryTaskManager implements TaskManager {
     // метод удаляет все эпики проекта, а также их подзадачи, так как подзадачи не могут быть без эпика
     @Override
     public void deleteAllEpics () {
+        for (Long id: epicTaskMap.keySet()){
+            historyMgr.remove(id);
+        }
         epicTaskMap.clear();
         subTaskMap.clear();
     }
@@ -70,6 +84,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTaskByID(Long taskID) {
 
         taskMap.remove(taskID);
+        historyMgr.remove(taskID);
     }
 
     // метод удаляет конкретный эпик, а также удаляет из общей коллекции подклассов все подклассы данного эпика
@@ -84,6 +99,7 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
         epicTaskMap.remove(taskID);
+        historyMgr.remove(taskID);
     }
 
     /*метод удаляет конкретный подкласс из коллекции ID подклассов Эпика и из общеф коллекции подклассов
@@ -92,6 +108,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteSubTaskByID(Long subTaskID) {
         long parentID = subTaskMap.get(subTaskID).getParentId();
         subTaskMap.remove(subTaskID);
+        historyMgr.remove(subTaskID);
         List<Long> epicSubTaskIDs = epicTaskMap.get(parentID).getSubTasksIDsList();
         epicSubTaskIDs.remove(subTaskID);
         ensureEpicStatus(parentID);
@@ -151,18 +168,20 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createNewTask (Task task){
+
         saveNewTask(task, TaskType.TASK);
     }
 
     @Override
     public void createNewEpicTask (EpicTask task){
+
         saveNewTask(task, TaskType.EPIC);
     }
 
     @Override
     public void createNewSubTask (SubTask task){
         task.setParentId(task.getParentId());
-        saveNewTask(task, TaskType.SUB_TASK);
+        saveNewTask(task, TaskType.SUBTASK);
         ensureEpicStatus(task.getParentId());
     }
 
@@ -178,6 +197,7 @@ public class InMemoryTaskManager implements TaskManager {
         return epicSubTasks;
     }
 
+
     /* Так как уникальный идентификатор сделан сквозным для всех типов задач, за сохранение и
     обновление идентификатора отвечает один метод
      */
@@ -190,7 +210,7 @@ public class InMemoryTaskManager implements TaskManager {
                 taskMap.put(nextTaskID,newTask);
                 break;
             }
-            case SUB_TASK: {
+            case SUBTASK: {
                 SubTask subTask = (SubTask)newTask;
                 if (epicTaskMap.get(subTask.getParentId()) != null) {
                     epicTaskMap.get(subTask.getParentId()).getSubTasksIDsList().add(subTask.getID());
