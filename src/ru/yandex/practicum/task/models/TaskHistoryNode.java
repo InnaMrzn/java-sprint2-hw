@@ -2,7 +2,7 @@ package ru.yandex.practicum.task.models;
 
 public class TaskHistoryNode {
 
-    private Task data;
+    private final Task data;
     public TaskHistoryNode prev;
     public TaskHistoryNode next;
 

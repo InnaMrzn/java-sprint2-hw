@@ -11,7 +11,7 @@ public class InMemoryHistoryManager implements HistoryManager{
     // мапа содержит все ранее просмотренные элементы, служит для удаления из LinkedList за O(1)
     private final Map<Long, TaskHistoryNode> inHistoryMap = new HashMap<>();
     // специальная реализация LinkedList с работы со списком просмотров
-    InMemoryHistoryManager.HistoryLinkedList<TaskHistoryNode> linkedHistory = this.new HistoryLinkedList<>();
+    final InMemoryHistoryManager.HistoryLinkedList<TaskHistoryNode> linkedHistory = this.new HistoryLinkedList<>();
 
     public static final long MAX_HISTORY_LENGTH = 10L;
 
