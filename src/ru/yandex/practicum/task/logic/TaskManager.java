@@ -4,6 +4,7 @@ import ru.yandex.practicum.task.models.EpicTask;
 import ru.yandex.practicum.task.models.SubTask;
 import ru.yandex.practicum.task.models.Task;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeSet;
 
 
@@ -12,15 +13,15 @@ public interface TaskManager {
     //этот метод добавлен для целей тестирования. Можно его удалить после тестирования
     long getNextTaskID();
 
-    HistoryManager getHistoryManager();
+    List<Task> getHistory();
 
     TreeSet<Task> getPrioritizedTasks();
 
-    HashMap<Long, Task> getAllTasks();
+    List<Task> getAllTasks();
 
-    HashMap<Long, EpicTask> getAllEpics();
+    List<EpicTask> getAllEpics();
 
-    HashMap<Long, SubTask> getAllSubTasks();
+    List<SubTask> getAllSubTasks();
 
     void deleteAllTasks();
 
@@ -46,11 +47,11 @@ public interface TaskManager {
 
     void updateEpicTask (EpicTask updatedEpic);
 
-    long createNewTask (Task task);
+    Task createNewTask (Task task);
 
-    long createNewEpicTask (EpicTask task);
+    EpicTask createNewEpicTask (EpicTask task);
 
-    long createNewSubTask (SubTask task);
+    SubTask createNewSubTask (SubTask task);
 
     HashMap<Long, SubTask> getEpicSubTasks (Long epicID);
 

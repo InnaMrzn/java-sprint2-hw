@@ -8,27 +8,18 @@ import java.util.Map;
 
 public class Managers {
 
-    public static boolean getIsBacked() {
-        return isBacked;
-    }
 
     public static void setIsBacked(boolean isBacked) {
         Managers.isBacked = isBacked;
     }
-
-    /*константа выбора какой тип менеджера задач применять
-        M - InMemory
-        F - FileBackedTasksManager*/
     private static boolean isBacked = true;
     public static final String BACKUP_FOLDER_NAME = "resources";
     public static final String BACKUP_FILE_NAME = "tasks.csv";
-
     public static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-
     public static final Map<Long, Boolean> schedule = new HashMap<>();
 
-    public static TaskManager getDefault() {
 
+    public static TaskManager getDefault() {
         loadSchedule();
         if (isBacked)
             return FileBackedTaskManager.getManagerFromFile(BACKUP_FOLDER_NAME+ System.getProperty("file.separator")+BACKUP_FILE_NAME);
@@ -51,7 +42,6 @@ public class Managers {
             schedule.put(startPoint,true);
             startDate = startDate.plusMinutes(15);
         }
-
     }
 
 

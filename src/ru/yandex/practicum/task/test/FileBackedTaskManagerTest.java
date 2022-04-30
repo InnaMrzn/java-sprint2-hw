@@ -1,9 +1,9 @@
 package ru.yandex.practicum.task.test;
-
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import ru.yandex.practicum.task.constants.TaskStatus;
 import ru.yandex.practicum.task.logic.Managers;
 import ru.yandex.practicum.task.models.EpicTask;
 import ru.yandex.practicum.task.models.Task;
@@ -16,13 +16,9 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     public static void beforeAll (){
         Managers.setIsBacked(true);
         taskManager = Managers.getDefault();
-    }
-
-    @AfterEach
-    public void afterEach(){
-        taskManager.getPrioritizedTasks().clear();
 
     }
+
 
     @Test
     void writeEmptyTaskCollectionToFile(){
@@ -53,19 +49,19 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
 
     @Test
     void writeTasksWithHistoryToFile(){
-        EpicTask epicTask1 = new EpicTask("Эпик 1 ", "Описание Эпик 1");
-        EpicTask epicTask2 = new EpicTask("Эпик 2 ", "Описание Эпик 2");
-        Task task = new Task("Задача 1 ", "Описание Задачи 1");
+        EpicTask epicTask1 = new EpicTask("Эпик 1", "Описание Эпик 1");
+        EpicTask epicTask2 = new EpicTask("Эпик 2", "Описание Эпик 2");
+        Task newTask = new Task("Задача 1 ", "Описание Задачи 1", TaskStatus.NEW);
         assertDoesNotThrow(new Executable() {
 
             @Override
             public void execute() {
-                long epicID = taskManager.createNewEpicTask(epicTask1);
+                EpicTask epic = taskManager.createNewEpicTask(epicTask1);
                 taskManager.createNewEpicTask(epicTask2);
-                long taskID = taskManager.createNewTask(task);
-                taskManager.getTaskByID(taskID);
-                taskManager.getEpicTaskByID(epicID);
-                taskManager.getEpicTaskByID(epicID);
+                Task task = taskManager.createNewTask(newTask);
+                taskManager.getTaskByID(task.getTaskId());
+                taskManager.getEpicTaskByID(epic.getTaskId());
+                taskManager.getEpicTaskByID(epic.getTaskId());
 
             }
         });

@@ -1,12 +1,14 @@
 package ru.yandex.practicum.task.models;
 
+import ru.yandex.practicum.task.constants.TaskStatus;
+
 public class SubTask extends Task {
 
    private long parentID;
 
 
-    public SubTask(String name, String description, long parentId) {
-        super(name, description);
+    public SubTask(String name, String description, TaskStatus status, long parentId) {
+        super(name, description, status);
         this.setParentId(parentId);
     }
 

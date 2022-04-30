@@ -1,7 +1,6 @@
 package ru.yandex.practicum.task.models;
 
 import ru.yandex.practicum.task.constants.TaskStatus;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
@@ -10,7 +9,7 @@ import java.util.Optional;
 public class Task {
 
     private String name;
-    private Long ID;
+    private Long taskId;
     private String description;
     private TaskStatus status;
     private LocalDateTime startTime;
@@ -19,10 +18,10 @@ public class Task {
     private final HashSet<Long> blockedTimeIntervals = new HashSet<>();
 
 
-    public Task(String name, String description) {
+    public Task(String name, String description, TaskStatus status) {
         this.setName(name);
         this.setDescription(description);
-        this.setStatus(TaskStatus.NEW);
+        this.setStatus(status);
     }
 
 
@@ -48,14 +47,14 @@ public class Task {
         this.duration = duration;
     }
 
-    public Long getID() {
+    public Long getTaskId() {
 
-        return ID;
+        return taskId;
     }
 
-    public void setID(Long ID) {
+    public void setTaskId(Long taskId) {
 
-        this.ID = ID;
+        this.taskId = taskId;
     }
 
     public String getDescription() {
@@ -95,7 +94,7 @@ public class Task {
     @Override
     public String toString() {
         return getClass().getSimpleName() + " {"+
-                "ID='" + ID + '\'' +
+                "ID='" + taskId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
@@ -107,12 +106,12 @@ public class Task {
         if (this == o) return true;
         if (!(o instanceof Task)) return false;
         Task task = (Task) o;
-        return ID.equals(task.ID);
+        return taskId.equals(task.taskId);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(ID);
+        int result = Objects.hash(taskId);
         result = 31 * result;
         return result;
     }
