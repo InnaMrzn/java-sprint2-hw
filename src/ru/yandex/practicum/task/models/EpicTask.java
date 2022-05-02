@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class EpicTask extends Task {
 
-    private List<Long> subTasksIDs = new ArrayList<>();
+    private List<Long> epicSubTasksIds = new ArrayList<>();
     private LocalDateTime endTime;
 
     public EpicTask (String name, String description) {
@@ -22,13 +22,13 @@ public class EpicTask extends Task {
         return endTime;
     }
 
-    public void setSubTasksIDs (List<Long> subTasksIDsList) {
-        this.subTasksIDs = subTasksIDsList;
+    public void setEpicSubTasksIds(List<Long> subTasksIDsList) {
+        this.epicSubTasksIds = subTasksIDsList;
 
     }
 
-    public List<Long> getSubTasksIDs() {
-        return subTasksIDs;
+    public List<Long> getEpicSubTasksIds() {
+        return epicSubTasksIds;
 
     }
 

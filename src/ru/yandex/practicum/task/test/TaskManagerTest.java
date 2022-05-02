@@ -491,6 +491,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createNewSubTask(task);
         task = new SubTask("Подзадача 3","Описание подзадачи 2", TaskStatus.NEW, epicTask.getTaskId());
         taskManager.createNewSubTask(task);
-        assertEquals(3, epicTask.getSubTasksIDs().size());
+        assertEquals(3, epicTask.getEpicSubTasksIds().size());
     }
 }

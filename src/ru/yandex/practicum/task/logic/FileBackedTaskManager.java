@@ -284,7 +284,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         for (EpicTask nextEpic: taskManager.getAllEpics()){
             System.out.println(nextEpic);
-            List<Long> nextSubTasksIDsList = nextEpic.getSubTasksIDs();
+            List<Long> nextSubTasksIDsList = nextEpic.getEpicSubTasksIds();
             System.out.println("Subtasks: ");
             for (Long nextSubTaskID: nextSubTasksIDsList) {
                 System.out.print ("    "+nextSubTaskID);

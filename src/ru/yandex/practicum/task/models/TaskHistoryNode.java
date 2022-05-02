@@ -4,7 +4,7 @@ public class TaskHistoryNode {
 
     private final Task data;
     private TaskHistoryNode prev;
-    public TaskHistoryNode next;
+    private TaskHistoryNode next;
 
 
     public TaskHistoryNode getNext() {

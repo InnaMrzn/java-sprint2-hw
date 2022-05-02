@@ -84,7 +84,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
         subTasks.clear();
         for (EpicTask nextEpicTask: epicTasks.values()){
-            nextEpicTask.getSubTasksIDs().clear();
+            nextEpicTask.getEpicSubTasksIds().clear();
             nextEpicTask.setStatus(TaskStatus.NEW);
             nextEpicTask.setStartTime(null);
             nextEpicTask.setDuration(0L);
@@ -96,7 +96,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteAllEpics () {
         for (EpicTask epic: epicTasks.values()){
             Long epicId = epic.getTaskId();
-            for (Long subTaskId: epic.getSubTasksIDs()){
+            for (Long subTaskId: epic.getEpicSubTasksIds()){
                 historyManager.remove(subTaskId);
             }
             historyManager.remove(epicId);
@@ -117,7 +117,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteEpicByID(Long taskID) {
         EpicTask epic = epicTasks.get(taskID);
         if(epic!=null){
-            for (Long subtaskId : epic.getSubTasksIDs()) {
+            for (Long subtaskId : epic.getEpicSubTasksIds()) {
                 subTasks.remove(subtaskId);
                 historyManager.remove(subtaskId);
             }
@@ -135,7 +135,7 @@ public class InMemoryTaskManager implements TaskManager {
         clearTimeIntervals(subTasks.get(subTaskID));
         subTasks.remove(subTaskID);
         historyManager.remove(subTaskID);
-        List<Long> epicSubTaskIDs = epicTasks.get(parentID).getSubTasksIDs();
+        List<Long> epicSubTaskIDs = epicTasks.get(parentID).getEpicSubTasksIds();
         epicSubTaskIDs.remove(subTaskID);
 
     }
@@ -190,8 +190,8 @@ public class InMemoryTaskManager implements TaskManager {
 
         if (updatedEpic.getTaskId() != null && epicTasks.get(updatedEpic.getTaskId()) != null) {
             EpicTask currentEpic = epicTasks.get(updatedEpic.getTaskId());
-            List<Long> subTaskIDs = currentEpic.getSubTasksIDs();
-            updatedEpic.setSubTasksIDs(subTaskIDs);
+            List<Long> subTaskIDs = currentEpic.getEpicSubTasksIds();
+            updatedEpic.setEpicSubTasksIds(subTaskIDs);
             if (!(updatedEpic.getStatus().equals(currentEpic.getStatus()))) {
                 updatedEpic.setStatus(currentEpic.getStatus());
                 System.out.println("Поменять статус Эпика нельзя");
@@ -231,7 +231,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public HashMap<Long, SubTask> getEpicSubTasks (Long epicID) {
-        List<Long> subTasksIDs = epicTasks.get(epicID).getSubTasksIDs();
+        List<Long> subTasksIDs = epicTasks.get(epicID).getEpicSubTasksIds();
         HashMap<Long, SubTask> epicSubTasks = new HashMap<>();
         for (Long subTaskID: subTasksIDs) {
             if (subTasks.get(subTaskID)!=null){
@@ -257,7 +257,7 @@ public class InMemoryTaskManager implements TaskManager {
             case SUBTASK: {
                 SubTask subTask = (SubTask)newTask;
                 if (epicTasks.get(subTask.getParentId()) != null) {
-                    epicTasks.get(subTask.getParentId()).getSubTasksIDs().add(subTask.getTaskId());
+                    epicTasks.get(subTask.getParentId()).getEpicSubTasksIds().add(subTask.getTaskId());
                     subTasks.put(subTask.getTaskId(), subTask);
                     prioritizedTasks.add(subTask);
                     checkAndMarkScheduler(newTask);
@@ -313,18 +313,18 @@ public class InMemoryTaskManager implements TaskManager {
     private void ensureEpicStatus (EpicTask parentEpic) {
         int doneCount=0;
         int newCount=0;
-        if (parentEpic.getSubTasksIDs().size()==0){
+        if (parentEpic.getEpicSubTasksIds().size()==0){
             parentEpic.setStatus(TaskStatus.NEW);
         } else {
-            for (Long nextSubTaskID : parentEpic.getSubTasksIDs()) {
+            for (Long nextSubTaskID : parentEpic.getEpicSubTasksIds()) {
                 if (subTasks.get(nextSubTaskID).getStatus().equals(TaskStatus.NEW))
                     newCount++;
                 if (subTasks.get(nextSubTaskID).getStatus().equals(TaskStatus.DONE))
                     doneCount++;
             }
-            if (newCount == parentEpic.getSubTasksIDs().size())
+            if (newCount == parentEpic.getEpicSubTasksIds().size())
                 parentEpic.setStatus(TaskStatus.NEW);
-            else if (doneCount == parentEpic.getSubTasksIDs().size())
+            else if (doneCount == parentEpic.getEpicSubTasksIds().size())
                 parentEpic.setStatus(TaskStatus.DONE);
             else
                 parentEpic.setStatus(TaskStatus.IN_PROCESS);
