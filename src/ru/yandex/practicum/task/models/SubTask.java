@@ -2,9 +2,11 @@ package ru.yandex.practicum.task.models;
 
 import ru.yandex.practicum.task.constants.TaskStatus;
 
+import java.time.LocalDateTime;
+
 public class SubTask extends Task {
 
-   private long parentID;
+   private long parentId;
 
 
     public SubTask(String name, String description, TaskStatus status, long parentId) {
@@ -12,18 +14,24 @@ public class SubTask extends Task {
         this.setParentId(parentId);
     }
 
+    public SubTask(String name, String description, TaskStatus status, long parentId, LocalDateTime startTime, long duration) {
+        this(name, description, status, parentId);
+        this.setStartTime(startTime);
+        this.setDuration(duration);
+    }
+
 
     public long getParentId() {
-        return parentID;
+        return parentId;
     }
 
     public void setParentId(long parentId) {
-        this.parentID = parentId;
+        this.parentId = parentId;
     }
 
     @Override
     public String toString() {
-        return "parentID=" + parentID+ ", "+ super.toString();
+        return "parentID=" + parentId + ", "+ super.toString();
     }
 
 }

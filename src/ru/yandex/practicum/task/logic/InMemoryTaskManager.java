@@ -13,14 +13,15 @@ import java.util.*;
 
 import static ru.yandex.practicum.task.logic.Managers.*;
 
+
 public class InMemoryTaskManager implements TaskManager {
 
-    protected static long nextTaskId;
+    protected long currentTaskId;
     protected final HashMap<Long, Task> tasks = new HashMap<>();
     protected final HashMap<Long, EpicTask> epicTasks = new HashMap<>();
     protected final HashMap<Long, SubTask> subTasks = new HashMap<>();
     protected HistoryManager historyManager = Managers.getDefaultHistory();
-    protected TreeSet<Task> prioritizedTasks = new TreeSet<>((o1, o2) -> {
+    transient protected TreeSet<Task> prioritizedTasks = new TreeSet<>((o1, o2) -> {
         if (o1.getStartTime() == null)
             return 1;
         if (o2.getStartTime() == null)
@@ -29,10 +30,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     });
 
-    @Override
-    public long getNextTaskID(){
-        return nextTaskId;
-    }
+    transient protected  HashMap<Long, HashSet<Long>> blockedTimeIntervals = new HashMap<>();
 
     @Override
     public List<Task> getHistory(){
@@ -46,21 +44,20 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<Task> getAllTasks() {
-
-        return new ArrayList<>(tasks.values());
+    public Map<Long, Task> getAllTasks() {
+        return new HashMap<>(tasks);
     }
 
     @Override
-    public List<EpicTask> getAllEpics() {
+    public Map<Long, EpicTask> getAllEpics() {
 
-        return new ArrayList<>(epicTasks.values());
+        return new HashMap<>(epicTasks);
     }
 
     @Override
-    public List<SubTask> getAllSubTasks() {
+    public Map<Long, SubTask> getAllSubTasks() {
 
-        return new ArrayList<>(subTasks.values());
+        return new HashMap<>(subTasks);
     }
 
     @Override
@@ -106,7 +103,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void deleteTaskByID(Long taskID) {
+    public void deleteTaskById(Long taskID) {
         clearTimeIntervals(tasks.get(taskID));
         tasks.remove(taskID);
         historyManager.remove(taskID);
@@ -114,7 +111,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     // метод удаляет конкретный эпик, а также удаляет из общей коллекции подзадач все подзадачи данного эпика
     @Override
-    public void deleteEpicByID(Long taskID) {
+    public void deleteEpicById(Long taskID) {
         EpicTask epic = epicTasks.get(taskID);
         if(epic!=null){
             for (Long subtaskId : epic.getEpicSubTasksIds()) {
@@ -129,7 +126,7 @@ public class InMemoryTaskManager implements TaskManager {
     /*метод удаляет конкретный подкласс из коллекции ID подклассов Эпика и из общеф коллекции подклассов
       Также проверяется и при необходимости меняется статус Эпика*/
     @Override
-    public void deleteSubTaskByID(Long subTaskID) {
+    public void deleteSubTaskById(Long subTaskID) {
         long parentID = subTasks.get(subTaskID).getParentId();
         ensureEpic(parentID, subTaskID);
         clearTimeIntervals(subTasks.get(subTaskID));
@@ -141,7 +138,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public SubTask getSubTaskByID (Long id) {
+    public SubTask getSubTaskById (Long id) {
         SubTask subTask = subTasks.get(id);
         if (subTask!=null)
             historyManager.add(subTask);
@@ -149,14 +146,14 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTaskByID (Long id) {
+    public Task getTaskById (Long id) {
         if (tasks.get(id)!=null)
             historyManager.add(tasks.get(id));
         return tasks.get(id);
     }
 
     @Override
-    public EpicTask getEpicTaskByID (Long id) {
+    public EpicTask getEpicTaskById (Long id) {
         if (epicTasks.get(id)!=null)
             historyManager.add(epicTasks.get(id));
         return epicTasks.get(id);
@@ -213,6 +210,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task createNewTask (Task task){
+
         return saveNewTask(task, TaskType.TASK);
     }
 
@@ -238,7 +236,7 @@ public class InMemoryTaskManager implements TaskManager {
                 epicSubTasks.put(subTaskID, subTasks.get(subTaskID));
             }
         }
-        return epicSubTasks;
+        return new HashMap<Long, SubTask> (epicSubTasks);
     }
 
 
@@ -246,10 +244,11 @@ public class InMemoryTaskManager implements TaskManager {
     обновление идентификатора отвечает один метод
      */
     private Task saveNewTask(Task newTask, TaskType taskType) throws TimeIsBusyException {
-        newTask.setTaskId(nextTaskId);
+        currentTaskId++;
+        newTask.setTaskId(currentTaskId);
         switch (taskType){
             case TASK: {
-                tasks.put(nextTaskId,newTask);
+                tasks.put(currentTaskId,newTask);
                 prioritizedTasks.add(newTask);
                 checkAndMarkScheduler(newTask);
                 break;
@@ -268,12 +267,11 @@ public class InMemoryTaskManager implements TaskManager {
             }
             case EPIC: {
                 newTask.setStatus(TaskStatus.NEW);
-                epicTasks.put(nextTaskId,(EpicTask)newTask);
+                epicTasks.put(currentTaskId,(EpicTask)newTask);
                 break;
             }
 
         }
-        nextTaskId++;
         return newTask;
     }
 
@@ -336,19 +334,21 @@ public class InMemoryTaskManager implements TaskManager {
     protected void checkAndMarkScheduler (Task task) throws TimeIsBusyException{
 
          if (task.getStartTime()!=null && task.getDuration()>0){
+            blockedTimeIntervals.putIfAbsent(task.getTaskId(), new HashSet<>());
             clearTimeIntervals(task);
             LocalDateTime startBlockedTime = task.getStartTime().minusMinutes(task.getStartTime().getMinute() % 15);
             LocalDateTime endBlockedTime = task.getEndTime().plusMinutes(15 - (task.getEndTime().getMinute() % 15));
 
             while (startBlockedTime.isBefore(endBlockedTime)) {
                 Long blockedPoint = Long.parseLong(startBlockedTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm")));
-                if (schedule.get(blockedPoint) != null && schedule.get(blockedPoint) == false){
+                if (schedule.get(blockedPoint) != null && !schedule.get(blockedPoint)){
                     throw new TimeIsBusyException("Невозможно сохранить задачу с началом "
                             + timeFormatter.format(task.getStartTime()) + " и продолжительностью " +
                             task.getDuration() + " мин. \nИнтервал с " + timeFormatter.format(startBlockedTime) + " уже занят.");
                  }
                 schedule.put(blockedPoint,false);
-                task.getBlockedTimeIntervals().add(blockedPoint);
+                blockedTimeIntervals.get(task.getTaskId()).add(blockedPoint);
+                blockedTimeIntervals.put(task.getTaskId(),blockedTimeIntervals.get(task.getTaskId()));
                 startBlockedTime = startBlockedTime.plusMinutes(15);
             }
         }
@@ -356,11 +356,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     protected void clearTimeIntervals (Task task){
-        for (Long interval: task.getBlockedTimeIntervals()){
-            schedule.put(interval,true);
-        }
-        task.getBlockedTimeIntervals().clear();
-
+            HashSet<Long> taskBlockedIntervals = blockedTimeIntervals.get(task.getTaskId());
+            if (taskBlockedIntervals !=null) {
+                for (Long interval : taskBlockedIntervals) {
+                    schedule.put(interval, true);
+                }
+                blockedTimeIntervals.get(task.getTaskId()).clear();
+            }
     }
 
 

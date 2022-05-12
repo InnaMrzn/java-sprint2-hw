@@ -3,17 +3,21 @@ package ru.yandex.practicum.task.logic;
 import ru.yandex.practicum.task.models.EpicTask;
 import ru.yandex.practicum.task.models.TaskHistoryNode;
 import ru.yandex.practicum.task.models.Task;
-
-import java.util.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 public class InMemoryHistoryManager implements HistoryManager{
 
     // мапа содержит все ранее просмотренные элементы, служит для удаления из LinkedList за O(1)
-    private final Map<Long, TaskHistoryNode> inHistoryNodes = new HashMap<>();
+    private Map<Long, TaskHistoryNode> inHistoryNodes = new HashMap<>();
     // специальная реализация LinkedList с работы со списком просмотров
-    private final InMemoryHistoryManager.HistoryLinkedList<TaskHistoryNode> linkedHistory = this.new HistoryLinkedList<>();
+    transient private final InMemoryHistoryManager.HistoryLinkedList<TaskHistoryNode> linkedHistory = this.new HistoryLinkedList<>();
 
     public static final long MAX_HISTORY_LENGTH = 10L;
+
+    public InMemoryHistoryManager (){}
 
     @Override
     public void add(Task task) {

@@ -2,7 +2,6 @@ package ru.yandex.practicum.task.models;
 
 import ru.yandex.practicum.task.constants.TaskStatus;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -15,8 +14,6 @@ public class Task {
     private LocalDateTime startTime;
     //продолжительность в минутах
     long duration ;
-    private final HashSet<Long> blockedTimeIntervals = new HashSet<>();
-
 
     public Task(String name, String description, TaskStatus status) {
         this.setName(name);
@@ -24,10 +21,12 @@ public class Task {
         this.setStatus(status);
     }
 
-
-    public HashSet<Long> getBlockedTimeIntervals(){
-        return blockedTimeIntervals;
+    public Task(String name, String description, TaskStatus status, LocalDateTime startTime, long duration) {
+        this(name,description,status);
+        this.setStartTime(startTime);
+        this.setDuration(duration);
     }
+
     public String getName() {
 
         return name;

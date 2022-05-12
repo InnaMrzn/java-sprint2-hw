@@ -3,25 +3,23 @@ package ru.yandex.practicum.task.logic;
 import ru.yandex.practicum.task.models.EpicTask;
 import ru.yandex.practicum.task.models.SubTask;
 import ru.yandex.practicum.task.models.Task;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 
 public interface TaskManager {
 
     //этот метод добавлен для целей тестирования. Можно его удалить после тестирования
-    long getNextTaskID();
-
     List<Task> getHistory();
 
     TreeSet<Task> getPrioritizedTasks();
 
-    List<Task> getAllTasks();
+    Map<Long, Task> getAllTasks();
 
-    List<EpicTask> getAllEpics();
+    Map<Long, EpicTask> getAllEpics();
 
-    List<SubTask> getAllSubTasks();
+    Map<Long, SubTask> getAllSubTasks();
 
     void deleteAllTasks();
 
@@ -29,17 +27,17 @@ public interface TaskManager {
 
     void deleteAllEpics ();
 
-    void deleteTaskByID(Long taskID);
+    void deleteTaskById(Long taskID);
 
-    void deleteEpicByID(Long taskID);
+    void deleteEpicById(Long taskID);
 
-    void deleteSubTaskByID(Long subTaskID);
+    void deleteSubTaskById(Long subTaskID);
 
-    SubTask getSubTaskByID (Long id);
+    SubTask getSubTaskById (Long id);
 
-    Task getTaskByID (Long id);
+    Task getTaskById (Long id);
 
-    EpicTask getEpicTaskByID (Long id);
+    EpicTask getEpicTaskById (Long id);
 
     void updateTask (Task task);
 
@@ -53,7 +51,7 @@ public interface TaskManager {
 
     SubTask createNewSubTask (SubTask task);
 
-    HashMap<Long, SubTask> getEpicSubTasks (Long epicID);
+    Map<Long, SubTask> getEpicSubTasks (Long epicID);
 
 
 

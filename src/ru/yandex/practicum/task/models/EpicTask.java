@@ -8,12 +8,13 @@ import java.util.ArrayList;
 
 public class EpicTask extends Task {
 
-    private List<Long> epicSubTasksIds = new ArrayList<>();
-    private LocalDateTime endTime;
+     private List<Long> epicSubTasksIds;
+     transient private LocalDateTime endTime;
 
     public EpicTask (String name, String description) {
 
         super(name, description, TaskStatus.NEW);
+        epicSubTasksIds = new ArrayList<>();
     }
 
     @Override
