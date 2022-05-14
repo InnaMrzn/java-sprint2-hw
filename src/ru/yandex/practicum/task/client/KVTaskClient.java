@@ -1,5 +1,7 @@
 package ru.yandex.practicum.task.client;
 
+import ru.yandex.practicum.task.exception.BadServerResponseException;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -13,22 +15,11 @@ public class KVTaskClient {
 
     public KVTaskClient(String serverURL) {
         this.urlString = serverURL;
-        try {
-            URI uri = URI.create(urlString+"/register");
-            HttpRequest request = HttpRequest.newBuilder().GET()
-                    .header("Accept", "text/html").uri(uri).build();
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            authToken = response.body().toString();
-        } catch(IllegalArgumentException ex){
-            System.out.println("Введённый вами адрес не соответствует формату URL. Попробуйте, пожалуйста, снова.");
-        } catch (IOException | InterruptedException ex){
-            System.out.println("Во время выполнения запроса возникла ошибка. Проверьте, пожалуйста, URL-адрес и повторите попытку..");
-        }
-
+        authToken = register(serverURL);
     }
 
     public String getUrlString() {
+
         return urlString;
     }
 
@@ -40,11 +31,16 @@ public class KVTaskClient {
                     .header("Content-Type","application/json").uri(uri).build();
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send (request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new BadServerResponseException("Ошибка при сохранении данных на KVServer. Сервер вернул код "
+                        + response.statusCode());
+            }
 
         } catch(IllegalArgumentException ex){
             System.out.println("Введённый вами адрес не соответствует формату URL. Попробуйте, пожалуйста, снова.");
         } catch (IOException | InterruptedException ex){
-            System.out.println("Во время выполнения запроса возникла ошибка. Проверьте, пожалуйста, URL-адрес и повторите попытку...");
+            throw new BadServerResponseException("Ошибка при сохранении данных на KVServer. " +
+                    "Проверьте URL запроса "+urlString+" и повторите попытку");
         }
     }
 
@@ -57,13 +53,43 @@ public class KVTaskClient {
                     .header("Accept","text/html").uri(uri).build();
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send (request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new BadServerResponseException("Ошибка при получении данных от KVServer. Сервер вернул код "
+                        + response.statusCode());
+            }
             bodyText = response.body();
         } catch(IllegalArgumentException ex){
             System.out.println("Введённый вами адрес не соответствует формату URL. Попробуйте, пожалуйста, снова.");
         } catch (IOException | InterruptedException ex){
-            System.out.println("Во время выполнения запроса возникла ошибка. Проверьте, пожалуйста, URL-адрес и повторите попытку....");
+            throw new BadServerResponseException("Ошибка при получении данных от KVServer. " +
+                    "Проверьте URL запроса "+urlString+" и повторите попытку");
         }
 
         return bodyText;
+    }
+
+    //метод авторизуется на сервере и возвращает токен авторизации
+    private String register (String serverURL)  {
+
+        String token ="";
+        try {
+            URI uri = URI.create(urlString+"/register");
+            HttpRequest request = HttpRequest.newBuilder().GET()
+                    .header("Accept", "text/html").uri(uri).build();
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new BadServerResponseException("Ошибка при авторизации на KVServer. Сервер вернул код "
+                        + response.statusCode());
+            }
+            token = response.body().toString();;
+        } catch(IllegalArgumentException ex){
+            System.out.println("Введённый вами адрес не соответствует формату URL. Попробуйте, пожалуйста, снова.");
+        } catch (IOException | InterruptedException ex){
+            throw new BadServerResponseException("Ошибка при авторизации на KVServer. " +
+                    "Проверьте URL запроса "+serverURL+" и повторите попытку");
+        }
+
+        return token;
     }
 }

@@ -26,6 +26,9 @@ public class HttpTaskServer  {
     private static final int PORT = 8080;
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     private final HttpServer httpServer;
+    private Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .create();
 
     public HttpTaskServer() throws IOException {
         this.taskManager = Managers.getDefault();
@@ -55,14 +58,16 @@ public class HttpTaskServer  {
             String queryString = httpExchange.getRequestURI().getQuery();
             String response = "";
             int rCode =0;
-            Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-            .create();
              switch (method) {
                 case "POST":
                     InputStream inputStream = httpExchange.getRequestBody();
                     String body = new String(inputStream.readAllBytes(), DEFAULT_CHARSET);
-                    if (subPath.contains("subtask")) {
+                    if (body.isBlank()) {
+                        httpExchange.sendResponseHeaders(400, 0);
+                        httpExchange.close();
+                        break;
+                    }
+                    if (subPath.equalsIgnoreCase("/subtask")) {
                         SubTask subTask = gson.fromJson(body, SubTask.class);
                         if (subTask.getTaskId() == null ||taskManager.getSubTaskById(subTask.getTaskId()) == null) {
                             SubTask result = taskManager.createNewSubTask(subTask);
@@ -72,7 +77,7 @@ public class HttpTaskServer  {
                             response = "Подзадача успешно обновлена.";
                         }
                         rCode =201;
-                    } else if (subPath.contains("task")) {
+                    } else if (subPath.equalsIgnoreCase("/task")) {
                         Task task = gson.fromJson(body, Task.class);
                         if (task.getTaskId() == null ||taskManager.getTaskById(task.getTaskId()) == null) {
                             Task result = taskManager.createNewTask(task);
@@ -82,7 +87,7 @@ public class HttpTaskServer  {
                             response = "Задача успешно обновлена.";
                         }
                         rCode =201;
-                    } else if (subPath.contains("epic")){
+                    } else if (subPath.equalsIgnoreCase("/epic")){
                         EpicTask task = gson.fromJson(body, EpicTask.class);
                         if (task.getTaskId() == null ||taskManager.getEpicTaskById(task.getTaskId()) == null) {
                             EpicTask result = taskManager.createNewEpicTask(task);
@@ -94,7 +99,7 @@ public class HttpTaskServer  {
                         }
                         rCode =201;
                     } else {
-                        rCode =400;
+                        rCode =404;
                         response = "путь "+subPath+" не поддерживается";
                     }
 
@@ -105,7 +110,7 @@ public class HttpTaskServer  {
                     break;
                 case "DELETE":
 
-                    if (subPath.contains("subtask")) {
+                    if (subPath.equalsIgnoreCase("/subtask")) {
                         if (queryString == null || queryString.isEmpty()) {
                             taskManager.deleteAllSubTasks();
                             response = "Все подзадачи успешно удалены.";
@@ -114,7 +119,7 @@ public class HttpTaskServer  {
                             response = "Подзадача с ID <ID Добавить сюда> успешно удалена.";
                         }
                         rCode =200;
-                    } else if (subPath.contains("task")) {
+                    } else if (subPath.equalsIgnoreCase("/task")) {
                         if (queryString == null || queryString.isEmpty()){
                             taskManager.deleteAllTasks();
                             response = "Все задачи успешно удалены.";
@@ -123,7 +128,7 @@ public class HttpTaskServer  {
                             response = "Задача с ID <ID Добавить сюда> успешно удалена.";
                         }
                         rCode =200;
-                    } else if (subPath.contains("epic")){
+                    } else if (subPath.equalsIgnoreCase("/epic")){
                         if (queryString == null || queryString.isEmpty()) {
                             taskManager.deleteAllEpics();
                             response = "Все эпики успешно удалены.";
@@ -133,7 +138,7 @@ public class HttpTaskServer  {
                         }
                         rCode =200;
                     } else {
-                        rCode =400;
+                        rCode =404;
                         response = "путь "+subPath+" не поддерживается";
                     }
 
@@ -146,18 +151,40 @@ public class HttpTaskServer  {
                     if (subPath.isEmpty() || subPath.isBlank()) {
                            response = gson.toJson(taskManager.getPrioritizedTasks());
                            rCode =200;
-                    } else if (subPath.contains("subtask")) {
+                    } else if (subPath.equalsIgnoreCase("/subtask")) {
                         if (queryString == null || queryString.isEmpty()) {
                             response = gson.toJson(taskManager.getAllSubTasks().values());
                         } else {
                             long id = Long.parseLong(queryString.substring("id=".length()));
-                            if (subPath.contains("epic"))
+                            if (subPath.substring("/subtask".length()).equalsIgnoreCase("/epic"))
                                 response = gson.toJson(taskManager.getEpicSubTasks(id));
                             else
                                 response = gson.toJson(taskManager.getSubTaskById(id));
                         }
                         rCode =200;
-                    } else if (subPath.contains("task")) {
+                    } if (subPath.isEmpty() || subPath.isBlank()) {
+                    response = gson.toJson(taskManager.getPrioritizedTasks());
+                    rCode =200;
+                } else if (subPath.equalsIgnoreCase("/subtask")) {
+                    if (queryString == null || queryString.isEmpty()) {
+                        response = gson.toJson(taskManager.getAllSubTasks().values());
+                    } else {
+                        long id = Long.parseLong(queryString.substring("id=".length()));
+                        response = gson.toJson(taskManager.getSubTaskById(id));
+                    }
+                    rCode =200;
+
+                } else if (subPath.equalsIgnoreCase("/subtask/epic")) {
+                    if (queryString == null || queryString.isEmpty()) {
+                        rCode = 400;
+                        response = "Необходимо указать ID эпика";
+                    } else {
+                        long id = Long.parseLong(queryString.substring("id=".length()));
+                           response = gson.toJson(taskManager.getEpicSubTasks(id));
+                        rCode =200;
+                    }
+
+                } else if (subPath.equalsIgnoreCase("/task")) {
                         if (queryString == null || queryString.isEmpty()){
                             response = gson.toJson(taskManager.getAllTasks().values());
                         } else {
@@ -165,7 +192,7 @@ public class HttpTaskServer  {
                             response = gson.toJson(taskManager.getTaskById(id));
                         }
                         rCode =200;
-                    } else if (subPath.contains("epic")){
+                    } else if (subPath.equalsIgnoreCase("/epic")){
                         if (queryString == null || queryString.isEmpty()){
                             response = gson.toJson(taskManager.getAllEpics().values());
                         } else {
@@ -173,11 +200,11 @@ public class HttpTaskServer  {
                             response = gson.toJson(taskManager.getEpicTaskById(id));
                         }
                         rCode =200;
-                    } else if (subPath.contains("history")){
+                    } else if (subPath.equalsIgnoreCase("/history")){
                            response = gson.toJson(taskManager.getHistory());
                            rCode =200;
                     } else {
-                        rCode =400;
+                        rCode =404;
                         response = "путь "+subPath+" не поддерживается";
                     }
 

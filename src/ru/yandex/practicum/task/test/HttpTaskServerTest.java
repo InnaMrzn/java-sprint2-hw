@@ -48,6 +48,21 @@ public class HttpTaskServerTest {
     }
 
     @Test
+    public void wrongPathSentInRequest(){
+        try{
+        URI uri = URI.create("http://localhost:8080/tasks/tasksssss");
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder().GET()
+                .header("Accept", "application/json").uri(uri).build();
+        HttpResponse<String> response = client.send (request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(404, response.statusCode());
+        } catch(IllegalArgumentException ex){
+            ex.getMessage();
+        } catch (IOException | InterruptedException ex){
+            ex.getMessage();
+        }
+    }
+    @Test
     public void Post2TasksAndGetAll(){
         try {
             URI uri = URI.create("http://localhost:8080/tasks/task");
@@ -829,7 +844,6 @@ public class HttpTaskServerTest {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
             rCode = response.statusCode();
             assertEquals(200,rCode);
-            System.out.println("epic="+response.body());
 
             //получаем подзадачи эпика
             //получаем все поздачи эпика 2 с помощью GET
@@ -888,7 +902,6 @@ public class HttpTaskServerTest {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
             rCode = response.statusCode();
             assertEquals(200,rCode);
-            System.out.println("EPIC ="+response.body());
 
             //получаем эпик и его подзадачу с помощью GET. Проверяем что они удалились
             uri = URI.create("http://localhost:8080/tasks/subtask?id="+2);
@@ -1067,8 +1080,6 @@ public class HttpTaskServerTest {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
             rCode = response.statusCode();
             assertEquals(200,rCode);
-            System.out.println("EPIC ="+response.body());
-
             //получаем эпик и его подзадачу с помощью GET. Проверяем что они удалились
             uri = URI.create("http://localhost:8080/tasks/subtask");
             request = HttpRequest.newBuilder().GET()
