@@ -23,28 +23,26 @@ public class KVTaskClient {
         return urlString;
     }
 
-    public void put(String key, String json){
-        try{
-            URI uri = URI.create(urlString+"/save/"+key+"?API_KEY="+authToken);
+    public void put(String key, String json) throws IllegalArgumentException{
+        try {
+            URI uri = URI.create(urlString + "/save/" + key + "?API_KEY=" + authToken);
 
             HttpRequest request = HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofString(json))
-                    .header("Content-Type","application/json").uri(uri).build();
+                    .header("Content-Type", "application/json").uri(uri).build();
             HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send (request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new BadServerResponseException("Ошибка при сохранении данных на KVServer. Сервер вернул код "
                         + response.statusCode());
             }
 
-        } catch(IllegalArgumentException ex){
-            System.out.println("Введённый вами адрес не соответствует формату URL. Попробуйте, пожалуйста, снова.");
         } catch (IOException | InterruptedException ex){
             throw new BadServerResponseException("Ошибка при сохранении данных на KVServer. " +
                     "Проверьте URL запроса "+urlString+" и повторите попытку");
         }
     }
 
-    public String load(String key){
+    public String load(String key) throws IllegalArgumentException{
 
         String bodyText = "";
         try{
@@ -58,8 +56,6 @@ public class KVTaskClient {
                         + response.statusCode());
             }
             bodyText = response.body();
-        } catch(IllegalArgumentException ex){
-            System.out.println("Введённый вами адрес не соответствует формату URL. Попробуйте, пожалуйста, снова.");
         } catch (IOException | InterruptedException ex){
             throw new BadServerResponseException("Ошибка при получении данных от KVServer. " +
                     "Проверьте URL запроса "+urlString+" и повторите попытку");
